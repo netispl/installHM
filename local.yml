@@ -1,0 +1,13 @@
+---
+- hosts: local
+
+  vars:
+  
+
+  tasks:
+  
+    - name: Sprawdzanie systemu
+      fail: msg="SYSTEM MUSI BYC 64-bitowy"
+      when: ansible_architecture != "x86_64"
+      
+      

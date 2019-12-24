@@ -2,14 +2,39 @@
 - hosts: local
 
   vars:
-  
 
   tasks:
   
-    - name: Sprawdzanie systemu
-      fail: msg="SYSTEM MUSI BYC 64-bitowy"
-      when: ansible_architecture != "x86_64"
-      
-      
-    - pause:
-        prompt: ENTER
+    - name: Sprawdzanie system operacyjny
+      fail: msg="WYMAGANY SYSTEM OPERACYJNY TO UBUNTU 18.04 x64"
+      when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version != "18" and ansible_architecture != "x86_64"
+
+    - name: NRSKL
+      prompt: "Podaj numer sklepu:"
+      private: no  
+
+    - name: NRSKL_GOLD
+      prompt: "Podaj kod sklepu w systemie GOLD:"
+      private: no  
+    
+    - name: NETWORK
+      prompt: "Podaj siec lokalna w jakiej bedzie dzialal sklep np. 10.122.252.0"
+      private: no
+
+    - name: Sprawdzam katalog sklepu
+      stat:
+        path: "/usr/local/sklep{{ NRSKL }}"
+      register: dir_s
+
+    - fail:
+        msg: "KATALOG SKLEPU ISTNIEJE"
+      when: dir_n.stat.exists and dir_n.stat.isdir
+
+
+
+
+    - name: Partycje
+      import_tasks: dysk.yml
+
+    - name: Wzorzec
+      import_tasks: wzorzec.yml

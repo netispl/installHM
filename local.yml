@@ -31,10 +31,5 @@
       when: dir_n.stat.exists and dir_n.stat.isdir
 
 
-
-
-    - name: Partycje
-      import_tasks: dysk.yml
-
-    - name: Wzorzec
-      import_tasks: wzorzec.yml
+    - pause:
+        prompt: Nacisnij ENTER

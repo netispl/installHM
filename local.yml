@@ -1,13 +1,7 @@
 ---
 - hosts: local
 
-  vars:
-
-  tasks:
-  
-    - name: Sprawdzanie system operacyjny
-      fail: msg="WYMAGANY SYSTEM OPERACYJNY TO UBUNTU 18.04 x64"
-      when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version != "18" and ansible_architecture != "x86_64"
+  vars_prompt:
 
     - name: NRSKL
       prompt: "Podaj numer sklepu:"
@@ -20,6 +14,13 @@
     - name: NETWORK
       prompt: "Podaj siec lokalna w jakiej bedzie dzialal sklep np. 10.122.252.0"
       private: no
+
+  tasks:
+  
+    - name: Sprawdzanie system operacyjny
+      fail: msg="WYMAGANY SYSTEM OPERACYJNY TO UBUNTU 18.04 x64"
+      when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version != "18" and ansible_architecture != "x86_64"
+
 
     - name: Sprawdzam katalog sklepu
       stat:

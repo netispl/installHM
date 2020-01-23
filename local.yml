@@ -84,6 +84,7 @@
     
     - name: crontab
       command: "mv /usr/local/sklep{{ NRSKL }}/cron.root /var/spool/cron/crontabs/root" 
+      ignore_errors: yes
 
     - name: Sprawdzam link do sklepu
       stat:

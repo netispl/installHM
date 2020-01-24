@@ -1,5 +1,7 @@
 ---
 - hosts: local
+  remote_user: ansiblenet
+  become: yes
 
   vars_prompt:
 

@@ -1,11 +1,11 @@
 ---
 - hosts: local
 
-  #vars_prompt:
+  vars_prompt:
 
-   # - name: NRSKL
-    #  prompt: "Podaj numer sklepu"
-     # private: no
+    - name: NRSKL
+      prompt: "Podaj numer sklepu"
+      private: no
 
   #  - name: KOD_GOLD
   #    prompt: "Podaj kod sklepu w systemie GOLD"

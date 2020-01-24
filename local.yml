@@ -7,13 +7,13 @@
       prompt: "Podaj numer sklepu"
       private: no
 
-  #  - name: KOD_GOLD
-  #    prompt: "Podaj kod sklepu w systemie GOLD"
-  #    private: no
+    - name: KOD_GOLD
+      prompt: "Podaj kod sklepu w systemie GOLD"
+      private: no
 
-  #  - name: NETWORK
-  #    prompt: "Podaj siec lokalna w jakiej bedzie dzialal sklep np. 10.122.252.0"
-  #    private: no
+    - name: NETWORK
+      prompt: "Podaj siec lokalna w jakiej bedzie dzialal sklep np. 10.122.252.0"
+      private: no
 
 
   tasks:

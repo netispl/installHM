@@ -1,19 +1,19 @@
 ---
 - hosts: local
 
-  vars_prompt:
+#  vars_prompt:
 
-    - name: NRSKL
-      prompt: "Podaj numer sklepu"
-      private: no
+#    - name: NRSKL
+#      prompt: "Podaj numer sklepu"
+#      private: no
 
-    - name: KOD_GOLD
-      prompt: "Podaj kod sklepu w systemie GOLD"
-      private: no
+#    - name: KOD_GOLD
+#      prompt: "Podaj kod sklepu w systemie GOLD"
+#      private: no
 
-    - name: NETWORK
-      prompt: "Podaj siec lokalna w jakiej bedzie dzialal sklep np. 10.122.252.0"
-      private: no
+#    - name: NETWORK
+#      prompt: "Podaj siec lokalna w jakiej bedzie dzialal sklep np. 10.122.252.0"
+#      private: no
 
 
   tasks:
@@ -63,7 +63,7 @@
     - name: Pobranie wzorca sklepu
       get_url:
         url: ftp://dinoftp:dInO.F^9031gG@dedyk-new.netis.pl/nowysklepdino.tgz
-        dest: /root/
+        dest: /tmp/
         force: yes
         timeout: 60
 
@@ -76,7 +76,7 @@
 
     - name: Rozpakowuje sklep
       unarchive:
-        src: /root/nowysklepdino.tgz
+        src: /tmp/nowysklepdino.tgz
         dest: "/usr/local/sklep{{ NRSKL }}/"
         remote_src: yes
         extra_opts:

@@ -293,7 +293,7 @@
       
     - name: Start kdserv-a
       shell: "cd /usr/local/sklep{{ NRSKL }}; bin/odpalaj bin/kdserv{{ NRSKL }} 1>/dev/null 2>/dev/null &"
-      when: kmp.failed == Fals
+      when: kmp.failed == False
     
     - name: Usuwam skrot instalacji HM
       file:

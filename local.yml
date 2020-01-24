@@ -1,19 +1,19 @@
 ---
 - hosts: local
 
-  vars_prompt:
+ # vars_prompt:
 
-    - name: NRSKL
-      prompt: "Podaj numer sklepu"
+  #  - name: NRSKL
+   #   prompt: "Podaj numer sklepu"
    #   private: no
 
-    - name: KOD_GOLD
-      prompt: "Podaj kod sklepu w systemie GOLD"
+   # - name: KOD_GOLD
+   #   prompt: "Podaj kod sklepu w systemie GOLD"
    #   private: no
 
-    - name: NETWORK
-      prompt: "Podaj siec lokalna w jakiej bedzie dzialal sklep np. 10.122.252.0"
-      private: no
+   # - name: NETWORK
+    #  prompt: "Podaj siec lokalna w jakiej bedzie dzialal sklep np. 10.122.252.0"
+    #  private: no
 
 
   tasks:

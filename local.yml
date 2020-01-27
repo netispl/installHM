@@ -1,5 +1,6 @@
 ---
 - hosts: local
+  become: yes
 
 #  vars_prompt:
 
@@ -14,7 +15,7 @@
 #    - name: NETWORK
 #      prompt: "Podaj siec lokalna w jakiej bedzie dzialal sklep np. 10.122.252.0"
 #      private: no
-
+ 
 
   tasks:
 
@@ -84,6 +85,7 @@
     
     - name: crontab
       command: "mv /usr/local/sklep{{ NRSKL }}/cron.root /var/spool/cron/crontabs/root" 
+      ignore_errors: yes
 
     - name: Sprawdzam link do sklepu
       stat:
@@ -249,12 +251,10 @@
       command: mysql "{{ mysql_hm }}" -e "UPDATE SklepCenyStany set NrSklep={{ NRSKL }};"
 
 
-    
     - name: Kompilacja Hipermarketu
       shell: make -C "{{ src_path }}/src" clean all
       register: kmp
       ignore_errors: yes
-
 
     - name: Zmiana sciezki
       replace:
@@ -262,27 +262,23 @@
         regexp: '(KD_INCLUDES_PATH=).*'
         replace: '\1{{ src_path }}/src'
 
-
     - name: Skrypt
       shell:
         chdir: "{{ qsrc_path }}"
         cmd: scripts/qmake_opt_mariadb.sh debug
       when: kmp.failed == False  
-      tags: aa
 
     - name: Kompilacja QHM
       shell: make -C "{{ qsrc_path }}" clean
       register: kmp_qhm
       ignore_errors: yes
       when: kmp.failed == False
-      tags: aa
    
     - name: Kompilacja QHM
       shell: make -C "{{ qsrc_path }}" -j4
       register: kmp_qhm
       ignore_errors: yes
       when: kmp.failed == False
-      tags: aa
 
     - name: Instalacja QHM
       shell: make -C "{{ qsrc_path }}" install
@@ -291,7 +287,7 @@
       
     - name: Start kdserv-a
       shell: "cd /usr/local/sklep{{ NRSKL }}; bin/odpalaj bin/kdserv{{ NRSKL }} 1>/dev/null 2>/dev/null &"
-      when: kmp.failed == Fals
+      when: kmp.failed == False
     
     - name: Usuwam skrot instalacji HM
       file:
@@ -335,12 +331,12 @@
        - "skrypty/Sql/CreateTablesUrzadzenia zaloz" 
        - "bin/instaluj -zalozadmina"
        - "bin/restartserv"
-       - "bin/kd -batch DocOpisImport2SQL -z"  
+       - "bin/kd -batch DocOpisImport2SQL -z" 
+#      - "skrypty.loc/import_GOLD_to_POS"  
 
     
     - set_fact:
         NET: "{{ NETWORK | regex_replace('(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.)(.*)','\\1') }}"
-      tags: nn
 
     - name: samba itp
       replace:
@@ -353,16 +349,17 @@
         - {dest: '/etc/rc.local', regexp: '^#(./bin.*)', line: '\1'}
         - {dest: '/etc/samba/smb.conf', regexp: '(^hosts allow.*)', line: '\1 {{ NET }}'}
         - {dest: '/home/quicksell/config.properties', regexp: '(^dbName=)(.*)', line: '\1hm{{ NRSKL }}'}
-          #      when: kmp.failed == False
-      tags: nn
 
     - name: host.allow
       lineinfile:
         path: /etc/hosts.allow
         line: "{{ NETWORK | regex_replace('(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.)(.*)','\\1') }}" 
-      tags: nn  
           
-    
+    - name: Sudo
+      lineinfile:
+        path: /etc/sudoers
+        regexp: '^sklep ALL.*'
+        validate: 'visudo -cf %s' 
 
     - pause:
          prompt: Nacisnij ENTER

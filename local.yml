@@ -40,6 +40,7 @@
     - name: Sprawdzam adres sieci
       fail: msg="NIEPOPRAWNY ADRES IP"
       when: NETWORK is not match('\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}')
+      no_log: True
 
     
     - name: Sprawdzam adres sieci

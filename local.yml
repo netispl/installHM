@@ -1,6 +1,7 @@
 ---
 - hosts: local
   become: yes
+  no_log: True
 
 #  vars_prompt:
 

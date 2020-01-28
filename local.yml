@@ -2,20 +2,6 @@
 - hosts: local
   become: yes
 
-#  vars_prompt:
-
-#    - name: NRSKL
-#      prompt: "Podaj numer sklepu"
-#      private: no
-
-#    - name: KOD_GOLD
-#      prompt: "Podaj kod sklepu w systemie GOLD"
-#      private: no
-
-#    - name: NETWORK
-#      prompt: "Podaj siec lokalna w jakiej bedzie dzialal sklep np. 10.122.252.0"
-#      private: no
- 
 
   tasks:
 
@@ -360,7 +346,7 @@
       lineinfile:
         path: /etc/sudoers
         regexp: '^sklep ALL.*'
-        validate: 'visudo -cf %s' 
+        state: absent
 
     - pause:
          prompt: Nacisnij ENTER

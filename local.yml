@@ -332,7 +332,8 @@
        - "bin/instaluj -zalozadmina"
        - "bin/restartserv"
        - "bin/kd -batch DocOpisImport2SQL -z" 
-#      - "skrypty.loc/import_GOLD_to_POS"  
+#      - "skrypty.loc/import_GOLD_to_POS"
+      ignore_errors: yes
 
     
     - set_fact:

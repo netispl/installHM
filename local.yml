@@ -348,5 +348,10 @@
         regexp: '^sklep ALL.*'
         state: absent
 
+    - name: Skrypt instalacyjny
+      file:
+        path: /home/sklep/.installHM.sh
+        state: absent
+
     - pause:
          prompt: Nacisnij ENTER

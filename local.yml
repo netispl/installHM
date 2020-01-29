@@ -353,6 +353,3 @@
         regexp: '^sklep ALL.*'
         state: absent
 
-
-    - pause:
-         prompt: Nacisnij ENTER

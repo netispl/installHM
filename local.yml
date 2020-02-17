@@ -5,6 +5,8 @@
 
   tasks:
 
+    - hostname:
+        name: "dino-s{{ NRSKL }}"  
 
     - assert:
         that:

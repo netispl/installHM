@@ -70,6 +70,16 @@
         remote_src: yes
         extra_opts:
         - --strip=2
+
+    - name: Tworzenie potrzebych katalogow
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0777'
+      with_items:
+        - "/usr/local/sklep{{ NRSKL }}/exporty/wydrukipdf"    
     
     - name: crontab
       command: "mv /usr/local/sklep{{ NRSKL }}/cron.root /var/spool/cron/crontabs/root" 
@@ -90,13 +100,11 @@
     - name: Pobieram
       command: "grep SRC /usr/local/sklep{{ NRSKL }}/konfiguracja/.src"
       register: src
-      tags: aa
 
     - name: Zapisuje 
       set_fact:
         src_path: "{{ src.stdout.split('=')[1] }}"
         qsrc_path: "{{ src.stdout.split('=')[1] }}/qhm"
-      tags: aa
 
     
     - name: Tworze katalog zrodel
@@ -177,7 +185,7 @@
         mysql_hmcs: "{{ _mysql_hmcs.stdout.split()[1] }}"
         nrskl_old: "{{ _nrskle_old.stdout }}"
 
-    - name: Zmiena baz
+    - name: Zmiana baz
       replace:
         dest: "{{ item.dest }}"
         regexp: "{{ item.regexp }}"
@@ -193,7 +201,7 @@
         variable: datadir
       register: base_dir
 
-    - name: Sprawdzanie czy baza istnieje
+    - name: Sprawdzanie czy bazy istnieje
       stat:
         path: "{{ base_dir }}/{{ item }}"
       with_items:
@@ -214,6 +222,7 @@
       with_items:
         - "{{ mysql_hm }}"
         - "{{ mysql_hmcs }}"  
+        - raporty
 
     - name: Import danych do MySql-a
       mysql_db:

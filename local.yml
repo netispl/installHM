@@ -313,7 +313,8 @@
       with_items:
        - "skrypty/Sql/CreateTablesFaktury zaloz"
        - "skrypty/Sql/CreateTablesFaktury typy"
-       - "skrypty/Sql/CreateTablesUrzadzenia zaloz" 
+       - "skrypty/Sql/CreateTablesUrzadzenia zaloz"
+       - "skrypty/Sql/CreateTablesDinoRaps zaloz"  
        - "bin/instaluj -zalozadmina"
        - "bin/restartserv"
        - "bin/kd -batch DocOpisImport2SQL -z" 

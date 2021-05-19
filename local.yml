@@ -339,6 +339,12 @@
         - {dest: '/etc/samba/smb.conf', regexp: '(^hosts allow.*)', line: '\1 {{ NET }}'}
         - {dest: '/home/quicksell/config.properties', regexp: '(^dbName=)(.*)', line: '\1hm{{ NRSKL }}'}
 
+    - name: Usuwanie z clear.pz1
+      lineinfile:
+        path: "/usr/local/sklep{{ NRSKL }}/skrypty.loc/clear.pz1"
+        regexp: ".*przygotuj_nowy_sklep.sh"
+        state: absent
+    
     - name: host.allow
       lineinfile:
         path: /etc/hosts.allow

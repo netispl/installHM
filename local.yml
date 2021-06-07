@@ -347,7 +347,7 @@
   
 
     - name: Dodanie uprawnien do MySql
-      command: mysql mysql -e "{{ items }}"
+      command: mysql mysql -e "{{ item }}"
       with_items:
         - "GRANT SELECT ON dino_raps.* TO 'mmerena'@'10.122.%';" 
         - "GRANT SELECT ON dino_raps.* TO 'mmerena'@'10.80.%';"

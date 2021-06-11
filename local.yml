@@ -166,6 +166,15 @@
         - {dest: '{{ src_path }}/Makefile.local', regexp: '(BINDIR=)(.*)', line: '\1/usr/local/sklep{{ NRSKL }}/bin/'}
       when: pliki_konf.results[2].stat.exists
 
+    - name: Zmiana zmiennych
+      replace:
+        dest: /usr/local/waginew/konfiguracja/zmienne.dat
+        regexp: "{{ item.regexp }}"
+        replace: "{{ item.line }}"
+      with_items:
+        - { regexp: '(hm)(.*)', line: '\1{{ NRSKL }}' }
+      ignore_errors: yes
+
     - name: Pobieram nazwe bazy
       command: "grep baza_serwera /usr/local/sklep{{ NRSKL }}/konfiguracja/zmienne.dat"
       register: _mysql_hm

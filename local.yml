@@ -172,8 +172,7 @@
         regexp: "{{ item.regexp }}"
         replace: "{{ item.line }}"
       with_items:
-        - { regexp: '(hm)(.*)', line: '\1{{ NRSKL }}' }
-      ignore_errors: yes
+        - { regexp: '(baza)(.*)', line: '\1\thm{{ NRSKL }}' }
 
     - name: Pobieram nazwe bazy
       command: "grep baza_serwera /usr/local/sklep{{ NRSKL }}/konfiguracja/zmienne.dat"

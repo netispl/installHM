@@ -280,6 +280,14 @@
         line: 'PATH=\1\2:/opt/mssql-tools/bin\3'
         backrefs: yes
     
+    - name: Wylaczanie rc-firewall
+      systemd:
+        name: rc-firewall
+        enabled: no
+
+    - name: Wylaczanie rc-firewall
+      command: chmod -x /etc/rc.firewall
+
     - name: Kompilacja Hipermarketu
       shell: make -C "{{ src_path }}/src" clean all
       register: kmp

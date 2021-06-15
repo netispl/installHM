@@ -480,5 +480,5 @@
       args:
         executable: /bin/bash
         chdir: "/usr/local/sklep{{ NRSKL }}"
-        cmd: skrypty/hmsql.sh -p
+        cmd: skrypty/kolejka -nodialog
       ignore_errors: yes

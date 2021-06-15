@@ -474,3 +474,11 @@
         regexp: '^sklep ALL.*'
         state: absent
 
+    # Skrypt hmsql  
+    - name: Step 55
+      shell:
+      args:
+        executable: /bin/bash
+        chdir: "/usr/local/sklep{{ NRSKL }}"
+        cmd: skrypty/hmsql.sh -p
+      ignore_errors: yes

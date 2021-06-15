@@ -48,22 +48,23 @@
         msg: "KATALOG SKLEPU ISTNIEJE"
       when: dir_s.stat.exists and dir_s.stat.isdir
 
-
-    - name: Pobranie wzorca sklepu
+    # Pobranie wzorca sklepu
+    - name: Step 1
       get_url:
         url: ftp://dinoftp:dInO.F^9031gG@dedyk-new.netis.pl/nowysklepdino.tgz
         dest: /tmp/
         force: yes
         timeout: 60
-
-    - name: Tworze katalog sklepu
+    
+    # Tworze katalog sklepu    
+    - name: Step 2
       file:
         path: "/usr/local/sklep{{ NRSKL }}"
         state: directory
         mode: 0755
 
-
-    - name: Rozpakowuje sklep
+    # Rozpakowywanie danych
+    - name: Step 3
       unarchive:
         src: /tmp/nowysklepdino.tgz
         dest: "/usr/local/sklep{{ NRSKL }}/"
@@ -71,7 +72,8 @@
         extra_opts:
         - --strip=2
 
-    - name: Tworzenie potrzebych katalogow
+    # Tworzenie potrzebych katalogow    
+    - name: Step 4
       file:
         path: "{{ item }}"
         state: directory
@@ -81,47 +83,50 @@
       with_items:
         - "/usr/local/sklep{{ NRSKL }}/exporty/wydrukipdf"    
     
-    - name: crontab
+    - name: Step 5
       command: "mv /usr/local/sklep{{ NRSKL }}/cron.root /var/spool/cron/crontabs/root" 
       ignore_errors: yes
 
-    - name: Sprawdzam link do sklepu
+    # Sprawdzam link do sklepu  
+    - name: Step 6
       stat:
         path: "/usr/local/sklep"
       register: link
 
-    - name: Tworz link sklep
+    # Tworz link sklep  
+    - name: Step 7
       file:
         src: "sklep{{ NRSKL }}"
         dest: "/usr/local/sklep"
         state: link
       when: link.stat.exists == False or link.stat.islnk == False
 
-    - name: Pobieram
+    - name: Step 8
       command: "grep SRC /usr/local/sklep{{ NRSKL }}/konfiguracja/.src"
       register: src
 
-    - name: Zapisuje 
+    - name: Step 9 
       set_fact:
         src_path: "{{ src.stdout.split('=')[1] }}"
         qsrc_path: "{{ src.stdout.split('=')[1] }}/qhm"
 
-    
-    - name: Tworze katalog zrodel
+    # Tworze katalog zrodel 
+    - name: Step 10 
       file:
         path: "{{ src_path }}"
         state: directory
         mode: 0755
 
  
-    - name: Rozpakowuje zrodel
+    # Rozpakowuje zrodel
+    - name: Step 11 
       unarchive:
         src: /usr/local/sklep{{ NRSKL }}/zrodla.tgz
         dest: "{{ src_path }}/"
         remote_src: yes
 
-
-    - name: Sprawdzanie plikow konfiguracyjnych
+    # Sprawdzanie plikow konfiguracyjnych
+    - name: Step 12 
       stat:
         path: "{{ item }}"
       with_items:
@@ -130,8 +135,8 @@
         - "{{ src_path }}/Makefile.local"  
       register: pliki_konf
 
-
-    - name: Zmiana konfguracji zmienne.dat
+    # Zmiana konfguracji zmienne.dat
+    - name: Step 13
       replace:
         dest: "{{ item.dest }}"
         regexp: "{{ item.regexp }}"
@@ -143,8 +148,8 @@
         - {dest: '/usr/local/sklep{{ NRSKL }}/konfiguracja/zmienne.dat', regexp: '(kdsk_kdserv_suffix)(.*)', line: '\1\t{{ NRSKL }}'}
       when: pliki_konf.results[0].stat.exists
 
-
-    - name: Zmiana konfguracji parms.dat
+    # Zmiana konfguracji parms.dat
+    - name: Step 14
       replace:
         dest: "{{ item.dest }}"
         regexp: "{{ item.regexp }}"
@@ -155,8 +160,8 @@
         - {dest: '/usr/local/sklep{{ NRSKL }}/konfiguracja/parms.dat', regexp: '(nazwa_skl).*', line: '\1\tSklep DINO {{ NRSKL }}'}
       when: pliki_konf.results[1].stat.exists
 
-
-    - name: Zmiana konfguracji Makefile
+    # Zmiana konfguracji Makefile
+    - name: Step 15
       replace:
         dest: "{{ item.dest }}"
         regexp: "{{ item.regexp }}"
@@ -166,7 +171,8 @@
         - {dest: '{{ src_path }}/Makefile.local', regexp: '(BINDIR=)(.*)', line: '\1/usr/local/sklep{{ NRSKL }}/bin/'}
       when: pliki_konf.results[2].stat.exists
 
-    - name: Zmiana zmiennych
+    # Zmiana zmiennych 
+    - name: Step 16
       replace:
         dest: /usr/local/waginew/konfiguracja/zmienne.dat
         regexp: "{{ item.regexp }}"
@@ -174,26 +180,29 @@
       with_items:
         - { regexp: '(baza)(.*)', line: '\1\thm{{ NRSKL }}' }
 
-    - name: Pobieram nazwe bazy
+    # Pobieram nazwe bazy      
+    - name: Step 17
       command: "grep baza_serwera /usr/local/sklep{{ NRSKL }}/konfiguracja/zmienne.dat"
       register: _mysql_hm
 
-    - name: Pobieram nazwe bazy_2
+    # Pobieram nazwe bazy_2  
+    - name: Step 18
       command: "grep ceny_serv /usr/local/sklep{{ NRSKL }}/konfiguracja/zmienne.dat"
       register: _mysql_hmcs
 
-    - name: Stary numer
+    - name: Step 19
       shell: "grep Database: /usr/local/sklep{{ NRSKL }}/schemah.dump | grep -o [[:digit:]]*[[:digit:]]"
       register: _nrskle_old
 
-
-    - name: Zapisuje nazwe bazy dancyh
+    # Zapisuje nazwe bazy dancyh   
+    - name: Step 20
       set_fact:
         mysql_hm: "{{ _mysql_hm.stdout.split()[1] }}"
         mysql_hmcs: "{{ _mysql_hmcs.stdout.split()[1] }}"
         nrskl_old: "{{ _nrskle_old.stdout }}"
 
-    - name: Zmiana baz
+    # Zmiana baz
+    - name: Step 21
       replace:
         dest: "{{ item.dest }}"
         regexp: "{{ item.regexp }}"
@@ -203,13 +212,14 @@
         - {dest: '/usr/local/sklep{{ NRSKL }}/schemaw.sql', regexp: '(hm[0-9]*)', line: 'hm{{ NRSKL }}'}
         - {dest: '/usr/local/sklep{{ NRSKL }}/schemaw.sql', regexp: '{{ nrskl_old }}', line: '{{ NRSKL }}'}
 
-
-    - name: Sprawdzanie czy bazy istnieja
+    # Sprawdzanie czy bazy istnieja
+    - name: Step 22
       mysql_variables:
         variable: datadir
       register: base_dir
-
-    - name: Sprawdzanie czy bazy istnieje
+      
+    # Sprawdzanie czy bazy istnieje
+    - name: Step 23
       stat:
         path: "{{ base_dir }}/{{ item }}"
       with_items:
@@ -223,7 +233,8 @@
         - "{{ bazki.results }}"
       when: item.stat.exists and item.stat.isdir
 
-    - name: Tworzenie baz danych
+    # Tworzenie baz danych  
+    - name: Step 24
       mysql_db:
         name: "{{ item }}"
         state: present
@@ -232,7 +243,8 @@
         - "{{ mysql_hmcs }}"  
         - raporty
 
-    - name: Import danych do MySql-a
+    # Import danych do MySql-a     
+    - name: Step 25
       mysql_db:
         name: "{{ item.baza }}"
         state: import
@@ -245,111 +257,125 @@
         - {baza: '{{ mysql_hm }}', plik: 'synch.dmp'}
         - {baza: '{{ mysql_hmcs }}', plik: 'schemac.dump'}
 
-    - name: Dodanie magazynu
+    # Dodanie magazynu      
+    - name: Step 26
       command: mysql "{{ mysql_hm }}" -e "INSERT INTO Magazyny (magazyn, sklep, symbolMag, opis, flaga, NrSklep, czas) VALUES (1,{{ NRSKL }},'podstawowy','',2,0,NOW());"
   
-    - name: zmiana
+    - name: Step 27
       command: mysql "{{ mysql_hm }}" -e "UPDATE StanKasy2 set stan={{ NRSKL }} where idStanu='Numer Sklepu';"
      
-    - name: Poprawianie StanKasy2
+    - name: Step 28
       command: mysql "{{ mysql_hm }}" -e "update StanKasy2 set NrSklep={{ NRSKL }} where NrSklep <> 0;"
 
-    - name: Poprawianie StanKasy2
+    - name: Step 29
       command: mysql "{{ mysql_hm }}" -e "delete from StanKasy2 where idStanu='opt_secure_key';"
 
-    - name: Usuwanie terminali
+    - name: Step 30
       command: mysql "{{ mysql_hm }}" -e "delete from StanKasy2 where (idStanu='term_con_string') or (idStanu='Wspolpraca z terminalem platniczym');"
       ignore_errors: true   
 
-    - name: zmiana
+    - name: Step 31
       command: mysql "{{ mysql_hm }}" -e "UPDATE SklepCenyStany set NrSklep={{ NRSKL }};"
 
-    - name: Find
+    # Szukanie plikow pep*
+    - name: Step 32
       find:
         paths: "/usr/local/sklep{{ NRSKL }}/konfiguracja/"
         patterns: 'pep_*'
         recurse: no
       register: pep
 
-    - name: Usuwanie pep.dat
+    # Usuwanie plikow pep.dat  
+    - name: Step 33
       file:
         path: "{{ item.path }}"
         state: absent
       loop: "{{ pep.files }}"
 
-    - name: Zmiana konfiguracji
+    - name: Step 34
       replace:
         dest: "/usr/local/sklep{{ NRSKL }}/konfiguracja/zmienne.dat"
         regexp: '(konto_bankowe)(\t.*)'
         replace: '\1'
 
-    - name: 'Dodanie PATH'
+    # Dodanie PATH    
+    - name: Step 35
       lineinfile:
         path: /etc/environment
         regexp: 'PATH=(["])((?!.*?/opt/mssql-tools/bin).*?)(["])$'
         line: 'PATH=\1\2:/opt/mssql-tools/bin\3'
         backrefs: yes
-    
-    - name: Wylaczanie rc-firewall
+   
+    # Wylaczanie rc-firewall
+    - name: Step 36
       systemd:
         name: rc-firewall
         enabled: no
-
-    - name: Wylaczanie rc-firewall
+    # Wylaczanie rc-firewall
+    - name: Step 37
       file:
-        src: /etc/rc.firewall
+        path: /etc/rc.firewall
         mode: a-x
 
-    - name: Kompilacja Hipermarketu
+    # Kompilacja Hipermarketu
+    - name: Step 38
       shell: make -C "{{ src_path }}/src" clean all
       register: kmp
       ignore_errors: yes
-
-    - name: Zmiana sciezki
+      
+    # Zmiana sciezki
+    - name: Step 39
       replace:
         dest: "{{ qsrc_path }}/proj_local.pri"
         regexp: '(KD_INCLUDES_PATH=).*'
         replace: '\1{{ src_path }}/src'
 
-    - name: Skrypt
+    - name: Step 40
       shell:
         chdir: "{{ qsrc_path }}"
         cmd: scripts/qmake_opt_mariadb.sh debug
       when: kmp.failed == False  
 
-    - name: Kompilacja QHM
+    # Kompilacja QHM
+    - name: Step 41
       shell: make -C "{{ qsrc_path }}" clean
       register: kmp_qhm
       ignore_errors: yes
       when: kmp.failed == False
-   
-    - name: Kompilacja QHM
+  
+    # Kompilacja QHM  
+    - name: Step 42 
       shell: make -C "{{ qsrc_path }}" -j4
       register: kmp_qhm
       ignore_errors: yes
       when: kmp.failed == False
 
-    - name: Instalacja QHM
+    # Instalacja QHM  
+    - name: Step 43
       shell: make -C "{{ qsrc_path }}" install
       ignore_errors: yes
       when: kmp_qhm.failed == False
 
-    - name: Inicjacja tcp_client-a
+    # Inicjacja tcp_client-a
+    - name: Step 44
       shell: "cd /usr/local/sklep{{ NRSKL }}; bin/tcp_client -zacznijod{{ ansible_date_time.date }}"
       ignore_errors: yes
       when: kmp.failed == False
 
-    - name: Start kdserv-a
+    # Start kdserv-a  
+    - name: Step 45
       shell: "cd /usr/local/sklep{{ NRSKL }}; bin/odpalaj bin/kdserv{{ NRSKL }} 1>/dev/null 2>/dev/null &"
       when: kmp.failed == False
-    
-    - name: Usuwam skrot instalacji HM
+   
+    # Usuwam skrot instalacji HM  
+    - name: Step 46
       file:
         path: /home/sklep/Pulpit/HM.desktop
         state: absent
       when: kmp_qhm.failed == False
 
-    - name: Skroty na pulpicie
+    # Skroty na pulpicie  
+    - name: Step 47
       template:
         src: "{{ item.src }}"
         dest: "{{ item.dest }}"
@@ -361,8 +387,8 @@
         - {src: 'templates/QHipermarket_kasjer.desktop.j2', dest: '/home/sklep/Pulpit/QHipermarket_kasjer.desktop'} 
       when: kmp_qhm.failed == False 
 
-
-    - name: Skrypty
+    # Skrypty  
+    - name: Step 48
       shell:
       args:
         executable: /bin/bash
@@ -383,7 +409,8 @@
     - set_fact:
         NET: "{{ NETWORK | regex_replace('(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.)(.*)','\\1') }}"
 
-    - name: rc.local, samba itp
+    # rc.local, samba itp    
+    - name: Step 49
       replace:
         dest: "{{ item.dest }}"
         regexp: "{{ item.regexp }}"
@@ -397,14 +424,15 @@
         - {dest: '/etc/samba/smb.conf', regexp: '(^hosts allow.*)', line: '\1 {{ NET }}'}
         - {dest: '/home/quicksell/config.properties', regexp: '(^dbName=)(.*)', line: '\1hm{{ NRSKL }}'}
 
-    - name: Usuwanie z clear.pz1
+    # Usuwanie z clear.pz1      
+    - name: Step 50
       lineinfile:
         path: "/usr/local/sklep{{ NRSKL }}/skrypty.loc/clear.pz1"
         regexp: ".*przygotuj_nowy_sklep.sh"
         state: absent
   
-
-    - name: Dodanie uprawnien do MySql
+    # Dodanie uprawnien do MySql
+    - name: Step 51
       command: mysql mysql -e "{{ item }}"
       no_log: True
       with_items:
@@ -427,18 +455,20 @@
         - "GRANT SELECT on {{ mysql_hm }}.InfoZwrot to 'mmerena'@'10.80.%';"
         - "GRANT SELECT on {{ mysql_hm }}.InfoZwrot to 'mmerena'@'10.122.%';" 
 
-
-    - name: host.allow
+    # host.allow
+    - name: Step 52
       lineinfile:
         path: /etc/hosts.allow
         line: "ALL:{{ NETWORK | regex_replace('(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.)(.*)','\\1') }}" 
-          
-    - name: Skrypt instalacyjny
+    
+    # Usuwanie skryptu instalacyjnego
+    - name: Step 53
       file:
         path: /home/sklep/.installHM.sh
         state: absent
     
-    - name: Sudo
+    # sudo
+    - name: Step 54
       lineinfile:
         path: /etc/sudoers
         regexp: '^sklep ALL.*'

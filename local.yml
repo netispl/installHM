@@ -250,11 +250,36 @@
   
     - name: zmiana
       command: mysql "{{ mysql_hm }}" -e "UPDATE StanKasy2 set stan={{ NRSKL }} where idStanu='Numer Sklepu';"
+     
+    - name: Poprawianie StanKasy2
+      command: mysql "{{ mysql_hm }}" -e "update StanKasy2 set NrSklep={{ NRSKL }} where NrSklep <> 0;"
+
+    - name: Poprawianie StanKasy2
+      command: mysql "{{ mysql_hm }}" -e "delete from StanKasy2 where idStanu='opt_secure_key';"
+
+    - name: Usuwanie terminali
+      command: mysql "{{ mysql_hm }}" -e "delete from StanKasy2 where (idStanu='term_con_string') or (idStanu='Wspolpraca z terminalem platniczym');"
+      ignore_errors: true   
 
     - name: zmiana
       command: mysql "{{ mysql_hm }}" -e "UPDATE SklepCenyStany set NrSklep={{ NRSKL }};"
 
+    - name: Usuwanie pep.dat
+      command: "rm -f /usr/local/sklep{{ NRSKL }}/konfiguracja/pep_*.dat"
 
+    - name: Zmiana konfiguracji
+      replace:
+        dest: "/usr/local/sklep{{ NRSKL }}/konfiguracja/zmienne.dat"
+        regexp: '(konto_bankowe)(\t.*)'
+        replace: '\1'
+
+    - name: 'Dodanie PATH'
+      lineinfile:
+        path: /etc/environment
+        regexp: 'PATH=(["])((?!.*?/opt/mssql-tools/bin).*?)(["])$'
+        line: 'PATH=\1\2:/opt/mssql-tools/bin\3'
+        backrefs: yes
+    
     - name: Kompilacja Hipermarketu
       shell: make -C "{{ src_path }}/src" clean all
       register: kmp
@@ -288,7 +313,12 @@
       shell: make -C "{{ qsrc_path }}" install
       ignore_errors: yes
       when: kmp_qhm.failed == False
-      
+
+    - name: Inicjacja tcp_client-a
+      shell: "cd /usr/local/sklep{{ NRSKL }}; bin/tcp_client -zacznijod{{ ansible_date_time.date }}"
+      ignore_errors: yes
+      when: kmp.failed == False
+
     - name: Start kdserv-a
       shell: "cd /usr/local/sklep{{ NRSKL }}; bin/odpalaj bin/kdserv{{ NRSKL }} 1>/dev/null 2>/dev/null &"
       when: kmp.failed == False
@@ -326,7 +356,7 @@
        - "bin/instaluj -zalozadmina"
        - "bin/restartserv"
        - "bin/kd -batch DocOpisImport2SQL -z" 
-#      - "skrypty.loc/import_GOLD_to_POS"
+        #- "skrypty.loc/import_GOLD_to_POS"
       ignore_errors: yes
 
     

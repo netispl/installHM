@@ -264,8 +264,18 @@
     - name: zmiana
       command: mysql "{{ mysql_hm }}" -e "UPDATE SklepCenyStany set NrSklep={{ NRSKL }};"
 
+    - name: Find
+      find:
+        paths: "/usr/local/sklep{{ NRSKL }}/konfiguracja/"
+        patterns: 'pep_*'
+        recurse: no
+      register: pep
+
     - name: Usuwanie pep.dat
-      command: "rm -f /usr/local/sklep{{ NRSKL }}/konfiguracja/pep_*.dat"
+      file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ pep.files }}"
 
     - name: Zmiana konfiguracji
       replace:
@@ -286,7 +296,9 @@
         enabled: no
 
     - name: Wylaczanie rc-firewall
-      command: chmod -x /etc/rc.firewall
+      file:
+        src: /etc/rc.firewall
+        mode: a-x
 
     - name: Kompilacja Hipermarketu
       shell: make -C "{{ src_path }}/src" clean all

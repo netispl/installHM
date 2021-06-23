@@ -48,13 +48,27 @@
         msg: "KATALOG SKLEPU ISTNIEJE"
       when: dir_s.stat.exists and dir_s.stat.isdir
 
-    # Pobranie wzorca sklepu
+
+    # Pobranie wzorca sklepu z serwera wewnetrznego
     - name: Step 1
       get_url:
-        url: ftp://dinoftp:dInO.F^9031gG@dedyk-new.netis.pl/nowysklepdino.tgz
+        url: ftp://dinospexp:dinospexp123@10.80.0.14/nowysklepdino.11883.tgz
         dest: /tmp/
         force: yes
         timeout: 60
+      no_log: True  
+      ignore_errors: True  
+      register: ftp_ok
+     
+    # Pobranie wzorca sklepu z naszego serwera
+    - name: Step 1
+      get_url:
+        url: ftp://dinoftp:dInO.F^9031gG@dedyk-new.netis.pl/nowysklepdino.11883.tgz
+        dest: /tmp/
+        force: yes
+        timeout: 60
+      no_log: True  
+      when: ftp_ok.failed == True   
     
     # Tworze katalog sklepu    
     - name: Step 2
@@ -66,7 +80,7 @@
     # Rozpakowywanie danych
     - name: Step 3
       unarchive:
-        src: /tmp/nowysklepdino.tgz
+        src: /tmp/nowysklepdino.11883.tgz
         dest: "/usr/local/sklep{{ NRSKL }}/"
         remote_src: yes
         extra_opts:
@@ -116,7 +130,6 @@
         path: "{{ src_path }}"
         state: directory
         mode: 0755
-
  
     # Rozpakowuje zrodel
     - name: Step 11 
@@ -404,6 +417,7 @@
        - "bin/kd -batch DocOpisImport2SQL -z" 
         #- "skrypty.loc/import_GOLD_to_POS"
       ignore_errors: yes
+      no_log: True
 
     
     - set_fact:
@@ -415,6 +429,7 @@
         dest: "{{ item.dest }}"
         regexp: "{{ item.regexp }}"
         replace: "{{ item.line }}"
+      no_log: True
       with_items:
         - {dest: '/etc/rc.local', regexp: '^#(cd /usr/local.*)', line: '\1'}
         - {dest: '/etc/rc.local', regexp: '#!/bin/sh -e', line: '#!/bin/bash'}
@@ -423,6 +438,8 @@
         - {dest: '/var/spool/cron/crontabs/root', regexp: '(.*/usr/local/sklep.*)' , line: '#\1' }  
         - {dest: '/etc/samba/smb.conf', regexp: '(^hosts allow.*)', line: '\1 {{ NET }}'}
         - {dest: '/home/quicksell/config.properties', regexp: '(^dbName=)(.*)', line: '\1hm{{ NRSKL }}'}
+        - {dest: '/home/sklep/Pulpit/GOLD_PROD.jnlp', regexp: '10.80.0.10:8082', line: '10.80.0.10:{{ PORT_GOLD }}' }
+        - {dest: '/usr/local/sklep{{ NRSKL }}/konfiguracja/pricechecker.dat', regexp: '(adres_podsieci)(.*)', line: '\1={{ NETWORK }}' }
 
     # Usuwanie z clear.pz1      
     - name: Step 50
@@ -455,30 +472,54 @@
         - "GRANT SELECT on {{ mysql_hm }}.InfoZwrot to 'mmerena'@'10.80.%';"
         - "GRANT SELECT on {{ mysql_hm }}.InfoZwrot to 'mmerena'@'10.122.%';" 
 
-    # host.allow
+    # Grant do MySql-a    
     - name: Step 52
+      mysql_user:
+        name: root
+        host: "{{ NETWORK | regex_replace('(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.)(.*)','\\1') }}%"
+        priv: '*.*:ALL'
+        state: present
+
+
+    # host.allow
+    - name: Step 53
       lineinfile:
         path: /etc/hosts.allow
         line: "ALL:{{ NETWORK | regex_replace('(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.)(.*)','\\1') }}" 
     
+    # Wylaczenie VPN na kontenerze
+    - name: Step 54
+      systemd:
+        state: stopped   
+        enabled: no
+        name: "openvpn@client.2.101"
+
+    # Usuniecie config-a VPN na kontenerze
+    - name: Step 55
+      file:
+        path: /etc/openvpn/client.2.101.conf
+        state: absent
+
+
     # Usuwanie skryptu instalacyjnego
-    - name: Step 53
+    - name: Step 56
       file:
         path: /home/sklep/.installHM.sh
         state: absent
     
-    # sudo
-    - name: Step 54
-      lineinfile:
-        path: /etc/sudoers
-        regexp: '^sklep ALL.*'
-        state: absent
 
-    # Skrypt hmsql  
-    - name: Step 55
+    # Skrypt kolejka 
+    - name: Step 57
       shell:
       args:
         executable: /bin/bash
         chdir: "/usr/local/sklep{{ NRSKL }}"
         cmd: skrypty/kolejka -nodialog
       ignore_errors: yes
+
+    # sudo
+    - name: Step 58
+      lineinfile:
+        path: /etc/sudoers
+        regexp: '^sklep ALL.*'
+        state: absent

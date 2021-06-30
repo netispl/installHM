@@ -435,7 +435,7 @@
         - {dest: '/etc/rc.local', regexp: '#!/bin/sh -e', line: '#!/bin/bash'}
         - {dest: '/etc/rc.local', regexp: '^#(NR=.*)', line: '\1'}
         - {dest: '/etc/rc.local', regexp: '^#(\./bin.*)', line: '\1'}
-        - {dest: '/var/spool/cron/crontabs/root', regexp: '(.*/usr/local/sklep.*)' , line: '#\1' }  
+        - {dest: '/var/spool/cron/crontabs/root', regexp: '(.*export_POS_to_GOLD.*)' , line: '#\1' }  
         - {dest: '/etc/samba/smb.conf', regexp: '(^hosts allow.*)', line: '\1 {{ NET }}'}
         - {dest: '/home/quicksell/config.properties', regexp: '(^dbName=)(.*)', line: '\1hm{{ NRSKL }}'}
         - {dest: '/home/sklep/Pulpit/GOLD_PROD.jnlp', regexp: '10.80.0.10:8082', line: '10.80.0.10:{{ PORT_GOLD }}' }

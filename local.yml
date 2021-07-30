@@ -525,17 +525,17 @@
         path: /home/sklep/.installHM.sh
         state: absent
     
-    # sudo
     - name: Step 58
+      systemd:
+        daemon_reload: yes
+
+    # sudo
+    - name: Step 59
       lineinfile:
         path: /etc/sudoers
         regexp: '^sklep ALL.*'
         state: absent
-  
-    - name: Step 59
-      systemd:
-        daemon_reload: yes
-
+    
     # Skrypt kolejka 
     - name: Step 60
       shell:
@@ -544,3 +544,4 @@
         chdir: "/usr/local/sklep{{ NRSKL }}"
         cmd: skrypty/kolejka -nodialog
       ignore_errors: yes
+

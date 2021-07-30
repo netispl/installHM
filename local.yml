@@ -529,15 +529,8 @@
       systemd:
         daemon_reload: yes
 
-    # sudo
-    - name: Step 59
-      lineinfile:
-        path: /etc/sudoers
-        regexp: '^sklep ALL.*'
-        state: absent
-    
     # Skrypt kolejka 
-    - name: Step 60
+    - name: Step 59
       shell:
       args:
         executable: /bin/bash
@@ -545,3 +538,9 @@
         cmd: skrypty/kolejka -nodialog
       ignore_errors: yes
 
+    # sudo
+    - name: Step 60
+      lineinfile:
+        path: /etc/sudoers
+        regexp: '^sklep ALL.*'
+        state: absent

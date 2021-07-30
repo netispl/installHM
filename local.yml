@@ -441,6 +441,7 @@
         - {dest: '/home/quicksell/config.properties', regexp: '(^dbName=)(.*)', line: '\1hm{{ NRSKL }}'}
         - {dest: '/home/sklep/Pulpit/GOLD_PROD.jnlp', regexp: '10.80.0.10:8082', line: '10.80.0.10:{{ PORT_GOLD }}' }
         - {dest: '/usr/local/sklep{{ NRSKL }}/konfiguracja/pricechecker.dat', regexp: '(adres_podsieci)(.*)', line: '\1={{ NETWORK }}' }
+        - {dest: '/lib/systemd/system/waga_daemon.service', regexp: '(ExecStart=)(.*)', line: '\1/usr/local/wagi/bin/waga_daemon --nonstop' }
 
     # Usuwanie z clear.pz1      
     - name: Step 50
@@ -448,14 +449,20 @@
         path: "/usr/local/sklep{{ NRSKL }}/skrypty.loc/clear.pz1"
         regexp: ".*przygotuj_nowy_sklep.sh"
         state: absent
-  
-    # Dodanie uprawnien do MySql
+ 
+    # Dodanie uzytkownika do mysql-a
     - name: Step 51
+      command: mysql mysql -e "CREATE USER 'mmerena'@'10.124.%' IDENTIFIED BY PASSWORD '*26D6CE70638EC05BF0416DDADBC44035BCE21E0B';"
+      no_log: True
+
+    # Dodanie uprawnien do MySql
+    - name: Step 52
       command: mysql mysql -e "{{ item }}"
       no_log: True
       with_items:
         - "GRANT SELECT ON dino_raps.* TO 'mmerena'@'10.122.%';" 
         - "GRANT SELECT ON dino_raps.* TO 'mmerena'@'10.80.%';"
+        - "GRANT SELECT ON dino_raps.* TO 'mmerena'@'10.124.%';" 
         - "GRANT SELECT on {{ mysql_hm }}.FakturySymbol to 'mmerena'@'10.80.%';"
         - "GRANT SELECT on {{ mysql_hm }}.FakturySymbol to 'mmerena'@'10.122.%';"
         - "GRANT SELECT on {{ mysql_hm }}.FakturyNaglowki to 'mmerena'@'10.80.%';"
@@ -471,10 +478,20 @@
         - "GRANT SELECT on {{ mysql_hm }}.PracownikSklep to 'mmerena'@'10.80.%';"
         - "GRANT SELECT on {{ mysql_hm }}.PracownikSklep to 'mmerena'@'10.122.%';"
         - "GRANT SELECT on {{ mysql_hm }}.InfoZwrot to 'mmerena'@'10.80.%';"
-        - "GRANT SELECT on {{ mysql_hm }}.InfoZwrot to 'mmerena'@'10.122.%';" 
+        - "GRANT SELECT on {{ mysql_hm }}.InfoZwrot to 'mmerena'@'10.122.%';"
+        - "GRANT SELECT on {{ mysql_hm }}.FakturySymbol to 'mmerena'@'10.124.%';"
+        - "GRANT SELECT on {{ mysql_hm }}.FakturyNaglowki to 'mmerena'@'10.122.%';"
+        - "GRANT SELECT on {{ mysql_hm }}.FakturyNaglowki to 'mmerena'@'10.124.%';"
+        - "GRANT SELECT on {{ mysql_hm }}.ParagonyNaglowki to 'mmerena'@'10.124.%';"
+        - "GRANT SELECT on {{ mysql_hm }}.Kasy to 'mmerena'@'10.124.%';"
+        - "GRANT SELECT on {{ mysql_hm }}.GOLDIdentyfikatoryTransakcji to 'mmerena'@'10.124.%';"
+        - "GRANT SELECT on {{ mysql_hm }}.Pracownicy to 'mmerena'@'10.124.%';"
+        - "GRANT SELECT on {{ mysql_hm }}.PracownikSklep to 'mmerena'@'10.124.%';"
+        - "GRANT SELECT on {{ mysql_hm }}.InfoZwrot to 'mmerena'@'10.124.%';"
+
 
     # Grant do MySql-a    
-    - name: Step 52
+    - name: Step 53
       mysql_user:
         name: root
         host: "{{ NETWORK | regex_replace('(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.)(.*)','\\1') }}%"
@@ -483,44 +500,47 @@
 
 
     # host.allow
-    - name: Step 53
+    - name: Step 54
       lineinfile:
         path: /etc/hosts.allow
         line: "ALL:{{ NETWORK | regex_replace('(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.)(.*)','\\1') }}" 
     
     # Wylaczenie VPN na kontenerze
-    - name: Step 54
+    - name: Step 55
       systemd:
         state: stopped   
         enabled: no
         name: "openvpn@client.2.101"
 
     # Usuniecie config-a VPN na kontenerze
-    - name: Step 55
+    - name: Step 56
       file:
         path: /etc/openvpn/client.2.101.conf
         state: absent
 
 
     # Usuwanie skryptu instalacyjnego
-    - name: Step 56
+    - name: Step 57
       file:
         path: /home/sklep/.installHM.sh
         state: absent
     
-
-    # Skrypt kolejka 
-    - name: Step 57
-      shell:
-      args:
-        executable: /bin/bash
-        chdir: "/usr/local/sklep{{ NRSKL }}"
-        cmd: skrypty/kolejka -nodialog
-      ignore_errors: yes
-
     # sudo
     - name: Step 58
       lineinfile:
         path: /etc/sudoers
         regexp: '^sklep ALL.*'
         state: absent
+  
+    - name: Step 59
+      systemd:
+        daemon_reload: yes
+
+    # Skrypt kolejka 
+    - name: Step 60
+      shell:
+      args:
+        executable: /bin/bash
+        chdir: "/usr/local/sklep{{ NRSKL }}"
+        cmd: skrypty/kolejka -nodialog
+      ignore_errors: yes

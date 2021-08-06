@@ -86,6 +86,7 @@
         extra_opts:
         - --strip=2
 
+    
     # Tworzenie potrzebych katalogow    
     - name: Step 4
       file:
@@ -498,39 +499,80 @@
         priv: '*.*:ALL'
         state: present
 
-
     # host.allow
     - name: Step 54
       lineinfile:
         path: /etc/hosts.allow
         line: "ALL:{{ NETWORK | regex_replace('(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.)(.*)','\\1') }}" 
-    
-    # Wylaczenie VPN na kontenerze
+   
+
+    # Pobranie wag z serwera wewnetrznego
     - name: Step 55
+      get_url:
+        url: ftp://dinospexp:dinospexp123@10.80.0.14/wagi.tar.bz2
+        dest: /tmp/
+        force: yes
+        timeout: 60
+      no_log: True
+      ignore_errors: True
+      register: wagi_ok
+
+    # Pobranie wag z naszego serwera
+    - name: Step 56
+      get_url:
+        url: ftp://dinoftp:dInO.F^9031gG@dedyk-new.netis.pl/wagi.tar.bz2
+        dest: /tmp/
+        force: yes
+        timeout: 60
+      no_log: True
+      ignore_errors: True
+      when: wagi_ok.failed == True
+
+    - name: Step 57
+      unarchive:
+        src: /tmp/wagi.tar.bz2
+        dest: /usr/local/
+      ignore_errors: yes
+
+    - name: Step 58
+      command: make clean all
+      args:
+        chdir: /usr/local/waginew/src
+      ignore_errors: yes
+
+    - name: Step 59
+      command: make waga_daemon
+      args:
+        chdir: /usr/local/waginew/src
+      ignore_errors: yes
+
+    # Wylaczenie VPN 
+    - name: Step 60
       systemd:
         state: stopped   
         enabled: no
         name: "openvpn@client.2.101"
 
-    # Usuniecie config-a VPN na kontenerze
-    - name: Step 56
+    # Usuniecie config-a VPN
+    - name: Step 61
       file:
         path: /etc/openvpn/client.2.101.conf
         state: absent
 
-
     # Usuwanie skryptu instalacyjnego
-    - name: Step 57
+    - name: Step 62
       file:
         path: /home/sklep/.installHM.sh
         state: absent
     
-    - name: Step 58
+    - name: Step 63
       systemd:
         daemon_reload: yes
+        state: restarted
+        name: waga_daemon.service
 
     # Skrypt kolejka 
-    - name: Step 59
+    - name: Step 64
       shell:
       args:
         executable: /bin/bash
@@ -539,7 +581,7 @@
       ignore_errors: yes
 
     # sudo
-    - name: Step 60
+    - name: Step 65
       lineinfile:
         path: /etc/sudoers
         regexp: '^sklep ALL.*'

@@ -1,2 +1,2 @@
 # installHM
-Instalacja Hipermarketu 
+Instalacja Hipermarketu    

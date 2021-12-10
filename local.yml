@@ -63,7 +63,7 @@
     # Pobranie wzorca sklepu z naszego serwera
     - name: Step 1
       get_url:
-        url: ftp://dinoftp:dInO.F^9031gG@dedyk-new.netis.pl/nowysklepdino.11883.tgz
+        url: ftp://dinoftp:dInO.F^9031gG@edi.netis.pl/nowysklepdino.11883.tgz
         dest: /tmp/
         force: yes
         timeout: 60

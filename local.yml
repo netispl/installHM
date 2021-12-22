@@ -338,38 +338,38 @@
       register: kmp
       ignore_errors: yes
       
-      #    # Zmiana sciezki
-      #    - name: Step 39
-      #      replace:
-      #        dest: "{{ qsrc_path }}/proj_local.pri"
-      #        regexp: '(KD_INCLUDES_PATH=).*'
-      #        replace: '\1{{ src_path }}/src'
-      #
-      #    - name: Step 40
-      #      shell:
-      #        chdir: "{{ qsrc_path }}"
-      #        cmd: scripts/qmake_opt_mariadb.sh debug
-      #      when: kmp.failed == False  
-      #
-      #    # Kompilacja QHM
-      #    - name: Step 41
-      #      shell: make -C "{{ qsrc_path }}" clean
-      #      register: kmp_qhm
-      #      ignore_errors: yes
-      #      when: kmp.failed == False
-      #  
-      #    # Kompilacja QHM  
-      #    - name: Step 42 
-      #      shell: make -C "{{ qsrc_path }}" -j4
-      #      register: kmp_qhm
-      #      ignore_errors: yes
-      #      when: kmp.failed == False
-      #
-      #    # Instalacja QHM  
-      #    - name: Step 43
-      #      shell: make -C "{{ qsrc_path }}" install
-      #      ignore_errors: yes
-      #      when: kmp_qhm.failed == False
+    # Zmiana sciezki
+    - name: Step 39
+      replace:
+        dest: "{{ qsrc_path }}/proj_local.pri"
+        regexp: '(KD_INCLUDES_PATH=).*'
+        replace: '\1{{ src_path }}/src'
+
+    - name: Step 40
+      shell:
+        chdir: "{{ qsrc_path }}"
+        cmd: scripts/qmake_opt_mariadb.sh debug
+      when: kmp.failed == False  
+
+    # Kompilacja QHM
+    - name: Step 41
+      shell: make -C "{{ qsrc_path }}" clean
+      register: kmp_qhm
+      ignore_errors: yes
+      when: kmp.failed == False
+  
+    # Kompilacja QHM  
+    - name: Step 42 
+      shell: make -C "{{ qsrc_path }}" -j4
+      register: kmp_qhm
+      ignore_errors: yes
+      when: kmp.failed == False
+
+    # Instalacja QHM  
+    - name: Step 43
+      shell: make -C "{{ qsrc_path }}" install
+      ignore_errors: yes
+      when: kmp_qhm.failed == False
 
     # Inicjacja tcp_client-a
     - name: Step 44
@@ -382,25 +382,25 @@
       shell: "cd /usr/local/sklep{{ NRSKL }}; bin/odpalaj bin/kdserv{{ NRSKL }} 1>/dev/null 2>/dev/null &"
       when: kmp.failed == False
    
-      #    # Usuwam skrot instalacji HM  
-      #    - name: Step 46
-      #      file:
-      #        path: /home/sklep/Pulpit/HM.desktop
-      #        state: absent
-      #      when: kmp_qhm.failed == False
-      #
-      #    # Skroty na pulpicie  
-      #    - name: Step 47
-      #      template:
-      #        src: "{{ item.src }}"
-      #        dest: "{{ item.dest }}"
-      #        owner: sklep
-      #        group: sklep
-      #        mode: '0777'
-      #      with_items:
-      #        - {src: 'templates/Hipermarket.desktop.j2', dest: '/home/sklep/Pulpit/Hipermarket.desktop'} 
-      #        - {src: 'templates/QHipermarket_kasjer.desktop.j2', dest: '/home/sklep/Pulpit/QHipermarket_kasjer.desktop'} 
-      #      when: kmp_qhm.failed == False 
+    # Usuwam skrot instalacji HM  
+    - name: Step 46
+      file:
+        path: /home/sklep/Pulpit/HM.desktop
+        state: absent
+      when: kmp_qhm.failed == False
+
+    # Skroty na pulpicie  
+    - name: Step 47
+      template:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        owner: sklep
+        group: sklep
+        mode: '0777'
+      with_items:
+        - {src: 'templates/Hipermarket.desktop.j2', dest: '/home/sklep/Pulpit/Hipermarket.desktop'} 
+        - {src: 'templates/QHipermarket_kasjer.desktop.j2', dest: '/home/sklep/Pulpit/QHipermarket_kasjer.desktop'} 
+      when: kmp_qhm.failed == False 
 
     # Skrypty  
     - name: Step 48
@@ -432,7 +432,6 @@
         regexp: "{{ item.regexp }}"
         replace: "{{ item.line }}"
       no_log: True
-      ignore_errors: yes
       with_items:
         - {dest: '/etc/rc.local', regexp: '^#(cd /usr/local.*)', line: '\1'}
         - {dest: '/etc/rc.local', regexp: '#!/bin/sh -e', line: '#!/bin/bash'}
@@ -440,10 +439,10 @@
         - {dest: '/etc/rc.local', regexp: '^#(\./bin.*)', line: '\1'}
         - {dest: '/var/spool/cron/crontabs/root', regexp: '(.*export_POS_to_GOLD.*)' , line: '#\1' }  
         - {dest: '/etc/samba/smb.conf', regexp: '(^hosts allow.*)', line: '\1 {{ NET }}'}
-    #    - {dest: '/home/quicksell/config.properties', regexp: '(^dbName=)(.*)', line: '\1hm{{ NRSKL }}'}
-    #        - {dest: '/home/sklep/Pulpit/GOLD_PROD.jnlp', regexp: '10.80.0.10:8082', line: '10.80.0.10:{{ PORT_GOLD }}' }
-    #    - {dest: '/usr/local/sklep{{ NRSKL }}/konfiguracja/pricechecker.dat', regexp: '(adres_podsieci)(.*)', line: '\1={{ NETWORK }}' }
-    #    - {dest: '/lib/systemd/system/waga_daemon.service', regexp: '(ExecStart=)(.*)', line: '\1/usr/local/wagi/bin/waga_daemon --nonstop' }
+        - {dest: '/home/quicksell/config.properties', regexp: '(^dbName=)(.*)', line: '\1hm{{ NRSKL }}'}
+        - {dest: '/home/sklep/Pulpit/GOLD_PROD.jnlp', regexp: '10.80.0.10:8082', line: '10.80.0.10:{{ PORT_GOLD }}' }
+        - {dest: '/usr/local/sklep{{ NRSKL }}/konfiguracja/pricechecker.dat', regexp: '(adres_podsieci)(.*)', line: '\1={{ NETWORK }}' }
+        - {dest: '/lib/systemd/system/waga_daemon.service', regexp: '(ExecStart=)(.*)', line: '\1/usr/local/wagi/bin/waga_daemon --nonstop' }
 
     # Usuwanie z clear.pz1      
     - name: Step 50
@@ -461,7 +460,6 @@
     - name: Step 52
       command: mysql mysql -e "{{ item }}"
       no_log: True
-      ignore_errors: yes
       with_items:
         - "GRANT SELECT ON dino_raps.* TO 'mmerena'@'10.122.%';" 
         - "GRANT SELECT ON dino_raps.* TO 'mmerena'@'10.80.%';"
@@ -508,83 +506,83 @@
         line: "ALL:{{ NETWORK | regex_replace('(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.)(.*)','\\1') }}" 
    
 
-        #    # Pobranie wag z serwera wewnetrznego
-        #    - name: Step 55
-        #      get_url:
-        #        url: ftp://dinospexp:dinospexp123@10.80.0.14/wagi.tar.bz2
-        #        dest: /tmp/
-        #        force: yes
-        #        timeout: 60
-        #      no_log: True
-        #      ignore_errors: True
-        #      register: wagi_ok
-        #
-        #    # Pobranie wag z naszego serwera
-        #    - name: Step 56
-        #      get_url:
-        #        url: ftp://dinoftp:dInO.F^9031gG@dedyk-new.netis.pl/wagi.tar.bz2
-        #        dest: /tmp/
-        #        force: yes
-        #        timeout: 60
-        #      no_log: True
-        #      ignore_errors: True
-        #      when: wagi_ok.failed == True
-        #
-        #    - name: Step 57
-        #      unarchive:
-        #        src: /tmp/wagi.tar.bz2
-        #        dest: /usr/local/
-        #      ignore_errors: yes
-        #
-        #    - name: Step 58
-        #      command: make clean all
-        #      args:
-        #        chdir: /usr/local/waginew/src
-        #      ignore_errors: yes
-        #
-        #    - name: Step 59
-        #      command: make waga_daemon
-        #      args:
-        #        chdir: /usr/local/waginew/src
-        #      ignore_errors: yes
-        #
-        #    # Wylaczenie VPN 
-        #    - name: Step 60
-        #      systemd:
-        #        state: stopped   
-        #        enabled: no
-        #        name: "openvpn@client.2.101"
-        #
-        #    # Usuniecie config-a VPN
-        #    - name: Step 61
-        #      file:
-        #        path: /etc/openvpn/client.2.101.conf
-        #        state: absent
-        #
-        #    # Usuwanie skryptu instalacyjnego
-        #    - name: Step 62
-        #      file:
-        #        path: /home/sklep/.installHM.sh
-        #        state: absent
-        #    
-        #    - name: Step 63
-        #      systemd:
-        #        daemon_reload: yes
-        #        state: restarted
-        #        name: waga_daemon.service
-        #
-        #    # Skrypt kolejka 
-        #    - name: Step 64
-        #      shell:
-        #      args:
-        #        executable: /bin/bash
-        #        chdir: "/usr/local/sklep{{ NRSKL }}"
-        #        cmd: skrypty/kolejka -nodialog
-        #      ignore_errors: yes
-        #
-        #    # sudo
-        #    - name: Step 65
-        #      lineinfile:
-        #        path: /etc/sudoers
-        #        regexp: '^sklep ALL.*'
-        #        state: absent
+    # Pobranie wag z serwera wewnetrznego
+    - name: Step 55
+      get_url:
+        url: ftp://dinospexp:dinospexp123@10.80.0.14/wagi.tar.bz2
+        dest: /tmp/
+        force: yes
+        timeout: 60
+      no_log: True
+      ignore_errors: True
+      register: wagi_ok
+
+    # Pobranie wag z naszego serwera
+    - name: Step 56
+      get_url:
+        url: ftp://dinoftp:dInO.F^9031gG@dedyk-new.netis.pl/wagi.tar.bz2
+        dest: /tmp/
+        force: yes
+        timeout: 60
+      no_log: True
+      ignore_errors: True
+      when: wagi_ok.failed == True
+
+    - name: Step 57
+      unarchive:
+        src: /tmp/wagi.tar.bz2
+        dest: /usr/local/
+      ignore_errors: yes
+
+    - name: Step 58
+      command: make clean all
+      args:
+        chdir: /usr/local/waginew/src
+      ignore_errors: yes
+
+    - name: Step 59
+      command: make waga_daemon
+      args:
+        chdir: /usr/local/waginew/src
+      ignore_errors: yes
+
+    # Wylaczenie VPN 
+    - name: Step 60
+      systemd:
+        state: stopped   
+        enabled: no
+        name: "openvpn@client.2.101"
+
+    # Usuniecie config-a VPN
+    - name: Step 61
+      file:
+        path: /etc/openvpn/client.2.101.conf
+        state: absent
+
+    # Usuwanie skryptu instalacyjnego
+    - name: Step 62
+      file:
+        path: /home/sklep/.installHM.sh
+        state: absent
+    
+    - name: Step 63
+      systemd:
+        daemon_reload: yes
+        state: restarted
+        name: waga_daemon.service
+
+    # Skrypt kolejka 
+    - name: Step 64
+      shell:
+      args:
+        executable: /bin/bash
+        chdir: "/usr/local/sklep{{ NRSKL }}"
+        cmd: skrypty/kolejka -nodialog
+      ignore_errors: yes
+
+    # sudo
+    - name: Step 65
+      lineinfile:
+        path: /etc/sudoers
+        regexp: '^sklep ALL.*'
+        state: absent

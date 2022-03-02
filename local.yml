@@ -223,7 +223,6 @@
         replace: "{{ item.line }}"
       with_items:
         - {dest: '/usr/local/sklep{{ NRSKL }}/schemaw.sql', regexp: '(hm[0-9]*)', line: 'hm{{ NRSKL }}'}
-        - {dest: '/usr/local/sklep{{ NRSKL }}/schemaw.sql', regexp: '(hm[0-9]*)', line: 'hm{{ NRSKL }}'}
         - {dest: '/usr/local/sklep{{ NRSKL }}/schemaw.sql', regexp: '{{ nrskl_old }}', line: '{{ NRSKL }}'}
 
     # Sprawdzanie czy bazy istnieja
@@ -326,6 +325,7 @@
       systemd:
         name: rc-firewall
         enabled: no
+
     # Wylaczanie rc-firewall
     - name: Step 37
       file:
@@ -336,7 +336,6 @@
     - name: Step 38
       shell: make -C "{{ src_path }}/src" clean all
       register: kmp
-      ignore_errors: yes
       
     # Zmiana sciezki
     - name: Step 39
@@ -349,45 +348,34 @@
       shell:
         chdir: "{{ qsrc_path }}"
         cmd: scripts/qmake_opt_mariadb.sh debug
-      when: kmp.failed == False  
 
     # Kompilacja QHM
     - name: Step 41
       shell: make -C "{{ qsrc_path }}" clean
-      register: kmp_qhm
-      ignore_errors: yes
-      when: kmp.failed == False
   
     # Kompilacja QHM  
     - name: Step 42 
       shell: make -C "{{ qsrc_path }}" -j4
-      register: kmp_qhm
-      ignore_errors: yes
-      when: kmp.failed == False
 
     # Instalacja QHM  
     - name: Step 43
       shell: make -C "{{ qsrc_path }}" install
-      ignore_errors: yes
-      when: kmp_qhm.failed == False
 
     # Inicjacja tcp_client-a
     - name: Step 44
       shell: "cd /usr/local/sklep{{ NRSKL }}; bin/tcp_client -zacznijod{{ ansible_date_time.date }}"
       ignore_errors: yes
-      when: kmp.failed == False
 
     # Start kdserv-a  
     - name: Step 45
       shell: "cd /usr/local/sklep{{ NRSKL }}; bin/odpalaj bin/kdserv{{ NRSKL }} 1>/dev/null 2>/dev/null &"
-      when: kmp.failed == False
    
     # Usuwam skrot instalacji HM  
     - name: Step 46
       file:
         path: /home/sklep/Pulpit/HM.desktop
         state: absent
-      when: kmp_qhm.failed == False
+      when: kmp.failed == False
 
     # Skroty na pulpicie  
     - name: Step 47
@@ -400,7 +388,7 @@
       with_items:
         - {src: 'templates/Hipermarket.desktop.j2', dest: '/home/sklep/Pulpit/Hipermarket.desktop'} 
         - {src: 'templates/QHipermarket_kasjer.desktop.j2', dest: '/home/sklep/Pulpit/QHipermarket_kasjer.desktop'} 
-      when: kmp_qhm.failed == False 
+      when: kmp.failed == False 
 
     # Skrypty  
     - name: Step 48
